@@ -29,8 +29,8 @@ git clone git@github.com:AgarwalSaurav/px4-multi-sim.git \
 cd ${PX4_WS}/src/px4-multi-sim/scripts
 bash px4_bash.sh
 # You should now be in a shell
-cd PX4-Autopilot
 pip install symforce
+cd src/PX4-Autopilot
 make px4_sitl
 ```
 
@@ -48,14 +48,18 @@ bash gazebo_sim.sh
 ```
 
 ```bash
-# Launch a robot on a new terminal
+# Edit robot configurations
 cd ${PX4_WS}/src/px4-multi-sim/scripts
-# The first parameter is the id; namespace is px4_<id>
-# The second and the third parameters are launch x y
-bash launch_robot.sh 1 0 0
+# Edit the file robots_execs.sh
+# Change Pose and ID
 ```
 
-Launch each robot in a separate terminal
+```bash
+# Launch multiple robots
+cd ${PX4_WS}/src/px4-multi-sim/scripts
+bash launch_multiple_robots.sh
+```
+
 
 ### Notes and links
 

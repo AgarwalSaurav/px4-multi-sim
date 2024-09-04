@@ -6,11 +6,11 @@ if [ -z "$PX4_WS" ]; then
   exit 1
 fi
 ROBOT_ID=$1
-CONTAINER_NAME=px4_$1
+CONTAINER_NAME=px4_robots
 POSE="$2,$3"
 echo "Launching robot $ROBOT_ID with pose $POSE"
 
-docker run -it --rm --privileged \
+docker run -d --rm --privileged \
   --env=LOCAL_USER_ID="$(id -u)" \
   --env=PX4_GZ_STANDALONE=1 \
   --env=PX4_GZ_MODEL_POSE=$POSE \
@@ -20,4 +20,5 @@ docker run -it --rm --privileged \
   -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
   --gpus all \
   --network host \
-  --name=$CONTAINER_NAME agarwalsaurav/px4-dev-ros2-humble ./PX4-Autopilot/build/px4_sitl_default/bin/px4 -i $ROBOT_ID
+  --name=$CONTAINER_NAME agarwalsaurav/px4-dev-ros2-humble src/px4-multi-sim/scripts/robots_execs.sh
+  # --name=$CONTAINER_NAME agarwalsaurav/px4-dev-ros2-humble src/PX4-Autopilot/build/px4_sitl_default/bin/px4 -i $ROBOT_ID

@@ -15,4 +15,4 @@ docker run -it --rm --privileged \
   -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
   -e DISPLAY=:1 \
   --network host \
-  --name=px4_gazebo_sim agarwalsaurav/px4-dev-ros2-humble python ./PX4-Autopilot/Tools/simulation/gz/simulation-gazebo
+  --name=px4_gazebo_sim agarwalsaurav/px4-dev-ros2-humble python src/PX4-Autopilot/Tools/simulation/gz/simulation-gazebo
