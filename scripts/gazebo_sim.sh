@@ -10,10 +10,9 @@ xhost +
 
 docker run -it --rm --privileged \
   --env=LOCAL_USER_ID="$(id -u)" \
-  --device=/dev/dri/card2 \
   --gpus all \
   -v ${PX4_WS}:/workspace/:rw \
   -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
   -e DISPLAY=:1 \
   --network host \
-  --name=px4_gazebo_sim agarwalsaurav/px4-dev-ros2-humble python ./PX4-Autopilot/Tools/simulation/gz/simulation-gazebo --headless
+  --name=px4_gazebo_sim agarwalsaurav/px4-dev-ros2-humble python ./PX4-Autopilot/Tools/simulation/gz/simulation-gazebo

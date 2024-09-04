@@ -23,7 +23,6 @@ else
       --env=PX4_GZ_STANDALONE=1 \
       -v ${PX4_WS}:/workspace/:rw \
       -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
-      -e DISPLAY=:1 \
       --gpus all \
       --network host \
       --name=$CONTAINER_NAME agarwalsaurav/px4-dev-ros2-humble bash
