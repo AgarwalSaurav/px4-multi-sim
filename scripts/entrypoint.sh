@@ -20,6 +20,8 @@ if [ -n "${LOCAL_USER_ID}" ]; then
 	echo "Starting with UID : $LOCAL_USER_ID"
 	# modify existing user's id
 	usermod -u $LOCAL_USER_ID user
+  chown -R user /home/user
+  gosu user /bin/bash -c "git config --global init.defaultBranch main"
 	# run as user
 	exec gosu user "$@"
 else

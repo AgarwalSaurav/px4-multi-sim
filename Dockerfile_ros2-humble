@@ -165,8 +165,11 @@ RUN ["/bin/bash", "-c", "/opt/install_dependencies.sh --geographiclib"]
 
 WORKDIR /workspace
 
+COPY simulation-gazebo.tar.gz /home/user/simulation-gazebo.tar.gz
+RUN tar -xvf /home/user/simulation-gazebo.tar.gz -C /home/user/
 COPY .bashrc /home/user/.bashrc
 RUN echo "source /opt/px4_ws/install/local_setup.bash" >> /home/user/.bashrc
+RUN echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib' >> /home/user/.bashrc
 COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 

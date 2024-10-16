@@ -18,7 +18,6 @@ docker run -d --rm --privileged \
   --env=PX4_SIM_MODEL=gz_x500 \
   -v ${PX4_WS}:/workspace/:rw \
   -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
-  --gpus all \
   --network host \
   --name=$CONTAINER_NAME agarwalsaurav/px4-dev-ros2-humble src/px4-multi-sim/scripts/robots_execs.sh
   # --name=$CONTAINER_NAME agarwalsaurav/px4-dev-ros2-humble src/PX4-Autopilot/build/px4_sitl_default/bin/px4 -i $ROBOT_ID

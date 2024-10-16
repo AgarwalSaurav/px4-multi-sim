@@ -10,7 +10,7 @@ CONTAINER_NAME=px4_bash
 # Check if the container is running
 if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
   # if the container is running, attach to it
-  docker exec -it $CONTAINER_NAME bash
+  docker exec -it $CONTAINER_NAME gosu user bash
 else
   # if the container is stopped, start it
   if [ "$(docker ps -aq -f status=exited -f name=$CONTAINER_NAME)" ]; then
@@ -23,7 +23,6 @@ else
       --env=PX4_GZ_STANDALONE=1 \
       -v ${PX4_WS}:/workspace/:rw \
       -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
-      --gpus all \
       --network host \
       --name=$CONTAINER_NAME agarwalsaurav/px4-dev-ros2-humble bash
   fi
