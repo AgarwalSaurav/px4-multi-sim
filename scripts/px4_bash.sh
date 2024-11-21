@@ -21,6 +21,7 @@ else
     docker run -it --rm --privileged \
       --env=LOCAL_USER_ID="$(id -u)" \
       --env=PX4_GZ_STANDALONE=1 \
+      --env=ROS_DOMAIN_ID=10 \
       -v ${PX4_WS}:/workspace/:rw \
       -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
       --network host \

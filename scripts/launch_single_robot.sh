@@ -1,5 +1,21 @@
 #!/bin/bash
 
+print_usage() {
+  echo "Usage: launch_single_robot.sh <robot_id> <x> <y>"
+  echo "  robot_id: ID of the robot to launch"
+  echo "  x: x-coordinate of the robot"
+  echo "  y: y-coordinate of the robot"
+}
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
+  print_usage
+  exit 0
+fi
+if [ "$#" -ne 3 ]; then
+  echo "Error: Invalid number of arguments"
+  print_usage
+  exit 1
+fi
+
 # Check if PX4_WS is set
 if [ -z "$PX4_WS" ]; then
   echo "PX4_WS is not set. Please set it to the path of your PX4 workspace."

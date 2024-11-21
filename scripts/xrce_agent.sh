@@ -7,6 +7,7 @@ if [ -z "$PX4_WS" ]; then
 fi
 docker run -it --rm --init --privileged \
   --env=LOCAL_USER_ID="$(id -u)" \
+  --env=ROS_DOMAIN_ID=10 \
   -v ${PX4_WS}:/workspace/:rw \
   -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
   --network host \

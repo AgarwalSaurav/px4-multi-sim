@@ -7,15 +7,14 @@ if [ -z "$PX4_WS" ]; then
 fi
 ROBOT_ID=$1
 CONTAINER_NAME=px4_robots
-POSE="$2,$3"
-echo "Launching robot $ROBOT_ID with pose $POSE"
+# POSE="$2,$3"
+# echo "Launching robot $ROBOT_ID with pose $POSE"
 
 docker run -d --rm --privileged \
   --env=LOCAL_USER_ID="$(id -u)" \
   --env=PX4_GZ_STANDALONE=1 \
-  --env=PX4_GZ_MODEL_POSE=$POSE \
   --env=PX4_SYS_AUTOSTART=4001 \
-  --env=PX4_SIM_MODEL=gz_x500 \
+  --env=ROS_DOMAIN_ID=10 \
   -v ${PX4_WS}:/workspace/:rw \
   -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
   --network host \

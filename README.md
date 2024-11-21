@@ -11,11 +11,23 @@ docker pull agarwalsaurav/px4-dev-ros2-humble:latest
 export PX4_WS=${HOME}/px4_ws    # Directory of your choice
 ```
 
+For **main branch** of PX4-Autopilot
 ```bash
-# Clone PX4-Autopilot
+# Clone PX4-Autopilot (main branch)
 mkdir -p ${PX4_WS}/src
 git clone --recursive \
     https://github.com/PX4/PX4-Autopilot.git ${PX4_WS}/src/PX4-Autopilot
+```
+
+For **v1.14.0** of PX4-Autopilot
+```bash
+# Clone PX4-Autopilot
+mkdir -p ${PX4_WS}/src
+git clone https://github.com/PX4/PX4-Autopilot.git ${PX4_WS}/src/PX4-Autopilot
+cd ${PX4_WS}/src/PX4-Autopilot
+git checkout v1.14.0
+cd ${PX4_WS}/src/PX4-Autopilot/Tools/simulation/gz/
+wget https://raw.githubusercontent.com/PX4/PX4-gazebo-models/9e47793f2bc18aa7cde39b1fc1c4b7bbc67e04ba/simulation-gazebo
 ```
 
 ``` bash
@@ -42,6 +54,7 @@ bash xrce_agent.sh
 
 ```bash
 # Launch gazebo_sim on a new terminal
+xhost +
 cd ${PX4_WS}/src/px4-multi-sim/scripts
 bash gazebo_sim.sh
 # Add --headless at the end of the command in the script for no GUI mode
@@ -58,6 +71,8 @@ cd ${PX4_WS}/src/px4-multi-sim/scripts
 # Launch multiple robots
 cd ${PX4_WS}/src/px4-multi-sim/scripts
 bash launch_multiple_robots.sh
+# To stop the robot simulations
+docker stop px4_robots
 ```
 
 
