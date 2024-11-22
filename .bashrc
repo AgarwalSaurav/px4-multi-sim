@@ -131,7 +131,6 @@ export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 # export PYTHONPATH=/opt/venv/lib/python3.10/site-packages:$PYTHONPATH
 
-export ROS_DOMAIN_ID=0
 export ROS_VERSION=2
 export ROS_DISTRO=humble
 export ROS_PYTHON_VERSION=3

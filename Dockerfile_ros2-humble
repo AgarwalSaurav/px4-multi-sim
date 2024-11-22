@@ -12,12 +12,14 @@ ENV ROS_DISTRO humble
 RUN apt-get	-y update; \
 		apt-get -y upgrade; \
 		apt-get -y install \
+                       apt-utils \
 											 build-essential \
 											 git \
 											 wget \
 											 gpg \
 											 curl \
 											 gdb \
+                       unzip \
 											 software-properties-common \
 											 ca-certificates \
 											 lsb-release \
@@ -29,7 +31,7 @@ RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/nul
 		echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ jammy main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null; \
 		apt-get update; \
 		rm /usr/share/keyrings/kitware-archive-keyring.gpg
-RUN apt install -y kitware-archive-keyring
+RUN apt-get install -y kitware-archive-keyring
 
 RUN apt-get -y install cmake
 
@@ -119,7 +121,7 @@ RUN pip3 install -U \
 		pytest-repeat \
 		pytest-rerunfailures \
     pytest-runner \
-    pytest-timeout \
+    pytest-timeout
 
 # This is a workaround for pytest not found causing builds to fail
 # Following RUN statements tests for regression of https://github.com/ros2/ros2/issues/722
@@ -159,9 +161,13 @@ COPY scripts/install_dependencies.sh /opt/install_dependencies.sh
 RUN chmod +x /opt/install_dependencies.sh
 RUN ["/bin/bash", "-c", "/opt/install_dependencies.sh --geographiclib"]
 
-# RUN git clone https://github.com/PX4/PX4-Autopilot.git --recursive /opt/px4_ws/src/PX4-Autopilot
-# WORKDIR /opt/px4_ws/src/PX4-Autopilot
-# RUN ["/bin/bash", "-c", "make px4_sitl"]
+RUN git clone https://github.com/PX4/PX4-Autopilot.git /opt/px4_ws/src/PX4-Autopilot
+WORKDIR /opt/px4_ws/src/PX4-Autopilot
+RUN git checkout v1.14.0
+RUN ["/bin/bash", "-c", "make px4_sitl"]
+WORKDIR /opt/px4_ws/src/PX4-Autopilot/Tools/simulation/gz/
+RUN wget https://raw.githubusercontent.com/PX4/PX4-gazebo-models/9e47793f2bc18aa7cde39b1fc1c4b7bbc67e04ba/simulation-gazebo
+RUN chmod +x simulation-gazebo
 
 WORKDIR /workspace
 

@@ -11,39 +11,10 @@ docker pull agarwalsaurav/px4-dev-ros2-humble:latest
 export PX4_WS=${HOME}/px4_ws    # Directory of your choice
 ```
 
-For **main branch** of PX4-Autopilot
-```bash
-# Clone PX4-Autopilot (main branch)
-mkdir -p ${PX4_WS}/src
-git clone --recursive \
-    https://github.com/PX4/PX4-Autopilot.git ${PX4_WS}/src/PX4-Autopilot
-```
-
-For **v1.14.0** of PX4-Autopilot
-```bash
-# Clone PX4-Autopilot
-mkdir -p ${PX4_WS}/src
-git clone https://github.com/PX4/PX4-Autopilot.git ${PX4_WS}/src/PX4-Autopilot
-cd ${PX4_WS}/src/PX4-Autopilot
-git checkout v1.14.0
-cd ${PX4_WS}/src/PX4-Autopilot/Tools/simulation/gz/
-wget https://raw.githubusercontent.com/PX4/PX4-gazebo-models/9e47793f2bc18aa7cde39b1fc1c4b7bbc67e04ba/simulation-gazebo
-```
-
 ``` bash
 # Clone simulator script files
 git clone git@github.com:AgarwalSaurav/px4-multi-sim.git \
     ${PX4_WS}/src/px4-multi-sim
-```
-
-```bash
-# Launch px4_bash to compile PX4-Autopilot
-cd ${PX4_WS}/src/px4-multi-sim/scripts
-bash px4_bash.sh
-# You should now be in a shell
-pip install symforce
-cd src/PX4-Autopilot
-make px4_sitl
 ```
 
 ```bash
