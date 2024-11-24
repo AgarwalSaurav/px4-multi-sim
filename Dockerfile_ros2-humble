@@ -152,8 +152,7 @@ RUN pip3 install -U --no-cache-dir wheel
 RUN pip3 install -U --no-cache-dir catkin_pkg empy==3.3.4 lark
 
 ENV TERM xterm-256color
-RUN mkdir -p /opt/px4_ws/src
-RUN git clone https://github.com/PX4/px4_msgs.git /opt/px4_ws/src/px4_msgs
+RUN git clone -b release/1.14 https://github.com/PX4/px4_msgs.git /opt/px4_ws/src/px4_msgs
 WORKDIR /opt/px4_ws
 RUN . /opt/ros/humble/setup.sh && colcon build --packages-select px4_msgs
 
@@ -161,21 +160,22 @@ COPY scripts/install_dependencies.sh /opt/install_dependencies.sh
 RUN chmod +x /opt/install_dependencies.sh
 RUN ["/bin/bash", "-c", "/opt/install_dependencies.sh --geographiclib"]
 
-RUN git clone https://github.com/PX4/PX4-Autopilot.git /opt/px4_ws/src/PX4-Autopilot
+RUN git clone https://github.com/pac-ws/geolocaltransform.git /opt/px4_ws/src/geolocaltransform
+WORKDIR /opt/px4_ws/src/geolocaltransform
+RUN pip3 install .
+
+RUN git clone -b v1.14.0 https://github.com/PX4/PX4-Autopilot.git /opt/px4_ws/src/PX4-Autopilot
 WORKDIR /opt/px4_ws/src/PX4-Autopilot
-RUN git checkout v1.14.0
 RUN ["/bin/bash", "-c", "make px4_sitl"]
 WORKDIR /opt/px4_ws/src/PX4-Autopilot/Tools/simulation/gz/
 RUN wget https://raw.githubusercontent.com/PX4/PX4-gazebo-models/9e47793f2bc18aa7cde39b1fc1c4b7bbc67e04ba/simulation-gazebo
 RUN chmod +x simulation-gazebo
 
-WORKDIR /workspace
+WORKDIR /home/user
 
 COPY simulation-gazebo.tar.gz /home/user/simulation-gazebo.tar.gz
 RUN tar -xvf /home/user/simulation-gazebo.tar.gz -C /home/user/
 COPY .bashrc /home/user/.bashrc
-RUN echo "source /opt/px4_ws/install/local_setup.bash" >> /home/user/.bashrc
-RUN echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib' >> /home/user/.bashrc
 COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 

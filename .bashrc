@@ -136,7 +136,9 @@ export ROS_DISTRO=humble
 export ROS_PYTHON_VERSION=3
 # source /opt/venv/bin/activate
 source /opt/ros/humble/setup.bash
+source /opt/px4_ws/install/local_setup.bash
 source /usr/share/colcon_cd/function/colcon_cd.sh
 export _colcon_cd_root=/opt/ros/humble/
 source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
 export PATH=/home/user/.local/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH

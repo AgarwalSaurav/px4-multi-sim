@@ -1,18 +1,13 @@
 #!/bin/bash
 
-# Check if PX4_WS is set
-if [ -z "$PX4_WS" ]; then
-  echo "PX4_WS is not set. Please set it to the path of your PX4 workspace."
-  exit 1
-fi
+source .env
 # enable access to xhost from the container
 xhost +
 
 docker run -it --rm --privileged \
   --env=LOCAL_USER_ID="$(id -u)" \
-  --env=ROS_DOMAIN_ID=10 \
-  -v ${PX4_WS}:/workspace/:rw \
+  --env=ROS_DOMAIN_ID=${ROS_DOMAIN_ID} \
   -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
   -e DISPLAY=:0 \
   --network host \
-  --name=px4_gazebo_sim agarwalsaurav/px4-dev-ros2-humble python src/PX4-Autopilot/Tools/simulation/gz/simulation-gazebo
+  --name=px4_gazebo_sim agarwalsaurav/px4-dev-ros2-humble python /opt/px4_ws/src/PX4-Autopilot/Tools/simulation/gz/simulation-gazebo

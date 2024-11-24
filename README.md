@@ -11,6 +11,11 @@ docker pull agarwalsaurav/px4-dev-ros2-humble:latest
 export PX4_WS=${HOME}/px4_ws    # Directory of your choice
 ```
 
+```bash
+# Change ROS_DOMAIN_ID in .env
+# Default is 10
+```
+
 ``` bash
 # Clone simulator script files
 git clone git@github.com:AgarwalSaurav/px4-multi-sim.git \
@@ -25,7 +30,6 @@ bash xrce_agent.sh
 
 ```bash
 # Launch gazebo_sim on a new terminal
-xhost +
 cd ${PX4_WS}/src/px4-multi-sim/scripts
 bash gazebo_sim.sh
 # Add --headless at the end of the command in the script for no GUI mode
@@ -42,10 +46,13 @@ cd ${PX4_WS}/src/px4-multi-sim/scripts
 # Launch multiple robots
 cd ${PX4_WS}/src/px4-multi-sim/scripts
 bash launch_multiple_robots.sh
-# To stop the robot simulations
-docker stop px4_robots
 ```
 
+```bash
+# Launch a bash shell to check ros messages
+cd ${PX4_WS}/src/px4-multi-sim/scripts
+bash px4_bash.sh
+```
 
 ### Notes and links
 
