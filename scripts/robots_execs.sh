@@ -4,6 +4,8 @@
 # "id, x, y"
 ids_poses=(
   "1 0 0"
+  "2 0 10"
+  "3 1 10"
 )
 
 for id_pose in "${ids_poses[@]}"; do
