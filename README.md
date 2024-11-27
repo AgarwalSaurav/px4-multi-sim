@@ -3,10 +3,6 @@
 ### Setup
 
 ```bash
-docker pull agarwalsaurav/px4-dev-ros2-humble:latest
-```
-
-```bash
 # Put this in .bashrc and open a new terminal
 export PX4_WS=${HOME}/px4_ws    # Directory of your choice
 ```
@@ -23,16 +19,22 @@ git clone git@github.com:AgarwalSaurav/px4-multi-sim.git \
 ```
 
 ```bash
+# Create a container
+cd ${PX4_WS}/src/px4-multi-sim/scripts
+bash px4_main.sh -c -d ${PX4_WS}
+```
+
+```bash
 # Launch xrce_agent on a new terminal
 cd ${PX4_WS}/src/px4-multi-sim/scripts
-bash xrce_agent.sh
+bash px4_main.sh -x
 ```
 
 ```bash
 # Launch gazebo_sim on a new terminal
 cd ${PX4_WS}/src/px4-multi-sim/scripts
-bash gazebo_sim.sh
-# Add --headless at the end of the command in the script for no GUI mode
+bash px4_main.sh -s
+# bash px4_main.sh -s --headless # Run gazebo in headless mode
 ```
 
 ```bash
@@ -45,13 +47,13 @@ cd ${PX4_WS}/src/px4-multi-sim/scripts
 ```bash
 # Launch multiple robots
 cd ${PX4_WS}/src/px4-multi-sim/scripts
-bash launch_multiple_robots.sh
+bash px4_main.sh -r
 ```
 
 ```bash
 # Launch a bash shell to check ros messages
 cd ${PX4_WS}/src/px4-multi-sim/scripts
-bash px4_bash.sh
+bash px4_main.sh -b
 ```
 
 ### Notes and links
