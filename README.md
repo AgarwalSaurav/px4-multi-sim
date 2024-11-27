@@ -7,15 +7,16 @@
 export PX4_WS=${HOME}/px4_ws    # Directory of your choice
 ```
 
-```bash
-# Change ROS_DOMAIN_ID in .env
-# Default is 10
-```
-
 ``` bash
 # Clone simulator script files
 git clone git@github.com:AgarwalSaurav/px4-multi-sim.git \
     ${PX4_WS}/src/px4-multi-sim
+```
+
+```bash
+cd ${PX4_WS}/src/px4-multi-sim/scripts
+# Change ROS_DOMAIN_ID in px4_main.sh
+# Default is 10
 ```
 
 ```bash

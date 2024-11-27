@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source .env
+export ROS_DOMAIN_ID=10
 
 ORIG_INPUT_PARAMS="$@"
 params="$(getopt -o d:n:xcbshr -l directory: -l name:help,create,xrce,bash,sim,headless,robots --name "$(basename "$0")" -- "$@")"
@@ -11,8 +11,27 @@ then
   print_usage
 fi
 
+
 print_usage() {
-  printf "bash $0 [-d|--directory <workspace directory>] [-n|--name <container name>] [-x|--xrce] [-b|--bash] [-s|--sim] [--headless] [-r|--robots] [-c|--create] [-h|--help]\n"
+    cat <<EOF
+Usage: bash $0 [OPTIONS]
+
+Options:
+  -d, --directory <workspace directory>  Specify the workspace directory.
+  -n, --name <container name>            Specify the container name.
+
+  -c, --create                            Create a new container.
+  -b, --bash                              Start an interactive bash shell.
+  -x, --xrce                              Start MicroXRCEAgent.
+  -s, --sim                               Start gazebo simulator.
+      --headless                          Run in headless mode (valid only with -s|--sim).
+  -r, --robots                            Launch multiple robots (see robots_execs.sh)
+
+  -h, --help                              Show this help message and exit.
+
+Note:
+  - Only one of the following options can be specified: -x, -s, -r, -c, -b.
+EOF
 }
 
 eval set -- "$params"
@@ -129,16 +148,20 @@ fi
 
 if [[ ${BASH} == true ]]; then
   exec_bash
+  exit 0
 fi
 
 if [[ ${XRCE} == true ]]; then
   exec_xrce
+  exit 0
 fi
 
 if [[ ${SIM} == true ]]; then
   exec_gazebo_sim
+  exit 0
 fi
 
 if [[ ${EXEC_MULTIPLE_ROBOTS} == true ]]; then
   exec_multiple_robots
+  exit 0
 fi
