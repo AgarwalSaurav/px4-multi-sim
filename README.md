@@ -12,7 +12,7 @@
 # Create a container
 bash px4_main.sh -c
 ```
-    Note: You can add `-d <dir>` to specify the directory to mount in the container
+**Note:** You can add `-d <dir>` to specify the directory to mount in the container
 
 ```bash
 # Launch xrce_agent
