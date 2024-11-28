@@ -3,47 +3,35 @@
 ### Setup
 
 ```bash
-# Put this in .bashrc and open a new terminal
-export PX4_WS=${HOME}/px4_ws    # Directory of your choice
-```
-
-``` bash
-# Clone simulator script files
-git clone git@github.com:AgarwalSaurav/px4-multi-sim.git \
-    ${PX4_WS}/src/px4-multi-sim
-```
-
-```bash
-cd ${PX4_WS}/src/px4-multi-sim/scripts
 # Change ROS_DOMAIN_ID in px4_main.sh
 # Default is 10
 # Edit ids and poses of robots: robots_poses.sh
 ```
 
 ```bash
-cd ${PX4_WS}/src/px4-multi-sim/scripts
 # Create a container
-bash px4_main.sh -c -d ${PX4_WS}
+bash px4_main.sh -c
+```
+    Note: You can add `-d <dir>` to specify the directory to mount in the container
+
+```bash
 # Launch xrce_agent
 bash px4_main.sh -x
 ```
 
 ```bash
 # Launch gazebo_sim on a new terminal
-cd ${PX4_WS}/src/px4-multi-sim/scripts
 bash px4_main.sh -s
 # bash px4_main.sh -s --headless # for no GUI
 ```
 
 ```bash
 # Launch multiple robots
-cd ${PX4_WS}/src/px4-multi-sim/scripts
 bash px4_main.sh -r
 ```
 
 ```bash
 # Launch a bash shell to check ros messages
-cd ${PX4_WS}/src/px4-multi-sim/scripts
 bash px4_main.sh -b
 ```
 
