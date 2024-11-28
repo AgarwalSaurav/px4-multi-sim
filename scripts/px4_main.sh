@@ -4,19 +4,11 @@
 # treat unset variables as errors, and ensure pipelines fail correctly.
 set -euo pipefail
 
-# ----------------------------
-# Color Definitions
-# ----------------------------
 RED='\033[0;31m'    # Red
 GREEN='\033[0;32m'  # Green
 YELLOW='\033[0;33m' # Yellow
 NC='\033[0m'        # No Color
 
-# ----------------------------
-# Function Definitions
-# ----------------------------
-
-# Function to display usage information
 print_usage() {
   cat <<EOF
 Usage: bash $(basename "$0") [OPTIONS]
@@ -60,26 +52,14 @@ warning_message() {
   echo -e "${YELLOW}Warning: $1${NC}"
 }
 
-# ----------------------------
-# Initial Checks
-# ----------------------------
-
 # Ensure required commands are available
-for cmd in docker getopt gosu; do
+for cmd in docker getopt; do
   if ! command_exists "$cmd"; then
     error_exit "'$cmd' command is not found. Please install it before running this script."
   fi
 done
 
-# ----------------------------
-# Environment Variables
-# ----------------------------
-
 export ROS_DOMAIN_ID=10
-
-# ----------------------------
-# Parse Command-line Arguments
-# ----------------------------
 
 if [[ $# -eq 0 ]]; then
   print_usage
@@ -122,27 +102,27 @@ while true; do
       ;;
     -c|--create)
       CREATE=true
-      ((EXCLUSIVE_OPTION_COUNT++))
+      ((++EXCLUSIVE_OPTION_COUNT))
       shift
       ;;
     -b|--bash)
       BASH_MODE=true
-      ((EXCLUSIVE_OPTION_COUNT++))
+      ((++EXCLUSIVE_OPTION_COUNT))
       shift
       ;;
     -x|--xrce)
       XRCE=true
-      ((EXCLUSIVE_OPTION_COUNT++))
+      ((++EXCLUSIVE_OPTION_COUNT))
       shift
       ;;
     -s|--sim)
       SIM=true
-      ((EXCLUSIVE_OPTION_COUNT++))
+      ((++EXCLUSIVE_OPTION_COUNT))
       shift
       ;;
     -r|--robots)
       EXEC_MULTIPLE_ROBOTS=true
-      ((EXCLUSIVE_OPTION_COUNT++))
+      ((++EXCLUSIVE_OPTION_COUNT))
       shift
       ;;
     --headless)
@@ -170,18 +150,8 @@ elif [[ $EXCLUSIVE_OPTION_COUNT -eq 0 ]]; then
   error_exit "At least one of the following options must be specified: -x, -s, -r, -c, -b."
 fi
 
-# ----------------------------
-# Configuration
-# ----------------------------
-
 IMAGE_NAME="agarwalsaurav/px4-dev-ros2-humble:latest"
 PX4_DIR="/opt/px4_ws/src/PX4-Autopilot"
-
-# Pull the Docker image
-info_message "Pulling Docker image: ${IMAGE_NAME}"
-if ! docker pull "${IMAGE_NAME}"; then
-  error_exit "Failed to pull Docker image: ${IMAGE_NAME}"
-fi
 
 # Ensure robots_execs.sh is executable
 if [[ ! -x "robots_execs.sh" ]]; then
@@ -192,6 +162,11 @@ if [[ ! -x "robots_execs.sh" ]]; then
   fi
 fi
 
+# Check if robots_poses.sh exists
+if [[ ! -f "robots_poses.sh" ]]; then
+  error_exit "'robots_poses.sh' not found. Please create the file with robot poses."
+fi
+
 # Set volume option if WS_DIR is provided
 if [[ -n "$WS_DIR" ]]; then
   VOLUME_OPTION="-v ${WS_DIR}:/workspace:rw"
@@ -199,11 +174,13 @@ else
   VOLUME_OPTION=""
 fi
 
-# ----------------------------
-# Function Definitions (continued)
-# ----------------------------
-
 create_container() {
+  # Pull the Docker image
+  info_message "Pulling Docker image: ${IMAGE_NAME}"
+  if ! docker pull "${IMAGE_NAME}"; then
+    error_exit "Failed to pull Docker image: ${IMAGE_NAME}"
+  fi
+
   if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
     warning_message "Container '${CONTAINER_NAME}' is already running."
     return 0
@@ -260,15 +237,11 @@ exec_gazebo_sim() {
 exec_multiple_robots() {
   if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
     info_message "Launching multiple robots in container '${CONTAINER_NAME}'..."
-    docker exec -it "${CONTAINER_NAME}" gosu user bash /px4_scripts/robots_execs.sh
+    docker exec -it "${CONTAINER_NAME}" gosu user bash /px4_scripts/robots_execs.sh /px4_scripts/robots_poses.sh
   else 
     error_exit "Container '${CONTAINER_NAME}' is not running. Please create the container first."
   fi
 }
-
-# ----------------------------
-# Main Logic
-# ----------------------------
 
 if [[ "$CREATE" == true ]]; then
   create_container
