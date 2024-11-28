@@ -35,7 +35,7 @@ RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/nul
     && apt-get install -y kitware-archive-keyring \
     && apt-get install -y cmake
 
-RUN add-apt-repository ppa:jonathonf/vim \
+RUN add-apt-repository -y ppa:jonathonf/vim \
     && apt-get update
 
 RUN apt-get -y install \
@@ -135,7 +135,7 @@ RUN git clone https://github.com/eProsima/Micro-XRCE-DDS-Agent.git \
     && make install \
     && ldconfig /usr/local/lib/
 
-COPY scripts/install_dependencies.sh /opt/install_dependencies.sh
+COPY install_dependencies.sh /opt/install_dependencies.sh
 RUN chmod +x /opt/install_dependencies.sh
 RUN ["/bin/bash", "-c", "/opt/install_dependencies.sh --geographiclib"]
 
@@ -161,7 +161,7 @@ RUN tar -xvf /home/user/vim.tar.xz -C /home/user/
 
 COPY simulation-gazebo.tar.gz /home/user/simulation-gazebo.tar.gz
 RUN tar -xvf /home/user/simulation-gazebo.tar.gz -C /home/user/
-COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 CMD ["/bin/bash"]
