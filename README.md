@@ -17,17 +17,14 @@ git clone git@github.com:AgarwalSaurav/px4-multi-sim.git \
 cd ${PX4_WS}/src/px4-multi-sim/scripts
 # Change ROS_DOMAIN_ID in px4_main.sh
 # Default is 10
+# Edit ids and poses of robots: robots_poses.sh
 ```
 
 ```bash
+cd ${PX4_WS}/src/px4-multi-sim/scripts
 # Create a container
-cd ${PX4_WS}/src/px4-multi-sim/scripts
 bash px4_main.sh -c -d ${PX4_WS}
-```
-
-```bash
-# Launch xrce_agent on a new terminal
-cd ${PX4_WS}/src/px4-multi-sim/scripts
+# Launch xrce_agent
 bash px4_main.sh -x
 ```
 
@@ -35,14 +32,7 @@ bash px4_main.sh -x
 # Launch gazebo_sim on a new terminal
 cd ${PX4_WS}/src/px4-multi-sim/scripts
 bash px4_main.sh -s
-# bash px4_main.sh -s --headless # Run gazebo in headless mode
-```
-
-```bash
-# Edit robot configurations
-cd ${PX4_WS}/src/px4-multi-sim/scripts
-# Edit the file robots_execs.sh
-# Change Pose and ID
+# bash px4_main.sh -s --headless # for no GUI
 ```
 
 ```bash
