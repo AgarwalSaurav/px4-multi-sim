@@ -1,167 +1,297 @@
 #!/bin/bash
 
-export ROS_DOMAIN_ID=10
+# Exit immediately if a command exits with a non-zero status,
+# treat unset variables as errors, and ensure pipelines fail correctly.
+set -euo pipefail
 
-ORIG_INPUT_PARAMS="$@"
-params="$(getopt -o d:n:xcbshr -l directory: -l name:help,create,xrce,bash,sim,headless,robots --name "$(basename "$0")" -- "$@")"
+# ----------------------------
+# Color Definitions
+# ----------------------------
+RED='\033[0;31m'    # Red
+GREEN='\033[0;32m'  # Green
+YELLOW='\033[0;33m' # Yellow
+NC='\033[0m'        # No Color
 
-if [ $? -ne 0 ]
-then
-  echo "Parameter error"
-  print_usage
-fi
+# ----------------------------
+# Function Definitions
+# ----------------------------
 
-
+# Function to display usage information
 print_usage() {
-    cat <<EOF
-Usage: bash $0 [OPTIONS]
+  cat <<EOF
+Usage: bash $(basename "$0") [OPTIONS]
 
 Options:
   -d, --directory <workspace directory>  Specify the workspace directory.
   -n, --name <container name>            Specify the container name.
 
-  -c, --create                            Create a new container.
-  -b, --bash                              Start an interactive bash shell.
-  -x, --xrce                              Start MicroXRCEAgent.
-  -s, --sim                               Start gazebo simulator.
-      --headless                          Run in headless mode (valid only with -s|--sim).
-  -r, --robots                            Launch multiple robots (see robots_execs.sh)
+  -c, --create                           Create a new container.
+  -b, --bash                             Start an interactive bash shell.
+  -x, --xrce                             Start MicroXRCEAgent.
+  -s, --sim                              Start Gazebo simulator.
+      --headless                         Run in headless mode (valid only with -s|--sim).
+  -r, --robots                           Launch multiple robots (see robots_execs.sh)
 
-  -h, --help                              Show this help message and exit.
+  -h, --help                             Show this help message and exit.
 
 Note:
   - Only one of the following options can be specified: -x, -s, -r, -c, -b.
 EOF
 }
 
-eval set -- "$params"
-unset params
+# Function to check if a command exists
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
 
-IMAGE_NAME=agarwalsaurav/px4-dev-ros2-humble:latest
-docker pull ${IMAGE_NAME}
-CONTAINER_NAME=px4_main
-PX4_DIR=/opt/px4_ws/src/PX4-Autopilot
+# Function to handle errors with colored output
+error_exit() {
+  echo -e "${RED}Error: $1${NC}" >&2
+  exit 1
+}
+
+# Function to display informational messages
+info_message() {
+  echo -e "${GREEN}$1${NC}"
+}
+
+# Function to display warnings
+warning_message() {
+  echo -e "${YELLOW}Warning: $1${NC}"
+}
+
+# ----------------------------
+# Initial Checks
+# ----------------------------
+
+# Ensure required commands are available
+for cmd in docker getopt gosu; do
+  if ! command_exists "$cmd"; then
+    error_exit "'$cmd' command is not found. Please install it before running this script."
+  fi
+done
+
+# ----------------------------
+# Environment Variables
+# ----------------------------
+
+export ROS_DOMAIN_ID=10
+
+# ----------------------------
+# Parse Command-line Arguments
+# ----------------------------
+
+if [[ $# -eq 0 ]]; then
+  print_usage
+  exit 1
+fi
+
+# Define short and long options
+SHORT_OPTS="d:n:xcbshr"
+LONG_OPTS="directory:,name:,help,create,xrce,bash,sim,headless,robots"
+
+# Parse options using getopt
+PARSED_PARAMS=$(getopt -o "$SHORT_OPTS" -l "$LONG_OPTS" -n "$(basename "$0")" -- "$@") || {
+  error_exit "Failed to parse arguments."
+}
+
+# Evaluate the parsed options
+eval set -- "$PARSED_PARAMS"
+
+# Initialize variables with default values
+WS_DIR=""
+CONTAINER_NAME="px4_main"
+CREATE=false
+BASH_MODE=false
+XRCE=false
+SIM=false
+EXEC_MULTIPLE_ROBOTS=false
 HEADLESS=""
-chmod +x robots_execs.sh
+EXCLUSIVE_OPTION_COUNT=0
 
+# Process parsed options
 while true; do
-  case ${1} in
-    -d|--directory) WS_DIR=("${2}");shift 2;;
-    -n|--name) CONTAINER_NAME=("${2}");shift 2;;
-    -b|--bash) BASH=true;shift;;
-    -x|--xrce) XRCE=true;shift;;
-    -s|--sim) SIM=true;shift;;
-    -r|--robots) EXEC_MULTIPLE_ROBOTS=true;shift;;
-    -c|--create) CREATE=true;shift;;
-    --headless) HEADLESS="--headless";shift;;
-    -h|--help) print_usage; exit 0;;
-    --) shift;break;;
-    *) print_usage
-      exit 1 ;;
+  case "$1" in
+    -d|--directory)
+      WS_DIR="$2"
+      shift 2
+      ;;
+    -n|--name)
+      CONTAINER_NAME="$2"
+      shift 2
+      ;;
+    -c|--create)
+      CREATE=true
+      ((EXCLUSIVE_OPTION_COUNT++))
+      shift
+      ;;
+    -b|--bash)
+      BASH_MODE=true
+      ((EXCLUSIVE_OPTION_COUNT++))
+      shift
+      ;;
+    -x|--xrce)
+      XRCE=true
+      ((EXCLUSIVE_OPTION_COUNT++))
+      shift
+      ;;
+    -s|--sim)
+      SIM=true
+      ((EXCLUSIVE_OPTION_COUNT++))
+      shift
+      ;;
+    -r|--robots)
+      EXEC_MULTIPLE_ROBOTS=true
+      ((EXCLUSIVE_OPTION_COUNT++))
+      shift
+      ;;
+    --headless)
+      HEADLESS="--headless"
+      shift
+      ;;
+    -h|--help)
+      print_usage
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      error_exit "Unknown option: $1"
+      ;;
   esac
 done
 
-if [ -z ${WS_DIR} ]; then
-  VOLUME_OPTION=""
-else
-  VOLUME_OPTION="-v ${WS_DIR}:/workspace:rw"
+# Enforce that only one exclusive option is specified
+if [[ $EXCLUSIVE_OPTION_COUNT -gt 1 ]]; then
+  error_exit "Only one of the following options can be specified: -x, -s, -r, -c, -b."
+elif [[ $EXCLUSIVE_OPTION_COUNT -eq 0 ]]; then
+  error_exit "At least one of the following options must be specified: -x, -s, -r, -c, -b."
 fi
 
-create_container() {
-  if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
-    echo "Container already running. Exiting..."
-    exit 0
+# ----------------------------
+# Configuration
+# ----------------------------
+
+IMAGE_NAME="agarwalsaurav/px4-dev-ros2-humble:latest"
+PX4_DIR="/opt/px4_ws/src/PX4-Autopilot"
+
+# Pull the Docker image
+info_message "Pulling Docker image: ${IMAGE_NAME}"
+if ! docker pull "${IMAGE_NAME}"; then
+  error_exit "Failed to pull Docker image: ${IMAGE_NAME}"
+fi
+
+# Ensure robots_execs.sh is executable
+if [[ ! -x "robots_execs.sh" ]]; then
+  if [[ -f "robots_execs.sh" ]]; then
+    chmod +x "robots_execs.sh"
+  else
+    warning_message "'robots_execs.sh' not found. Some functions may not work properly."
   fi
+fi
+
+# Set volume option if WS_DIR is provided
+if [[ -n "$WS_DIR" ]]; then
+  VOLUME_OPTION="-v ${WS_DIR}:/workspace:rw"
+else
+  VOLUME_OPTION=""
+fi
+
+# ----------------------------
+# Function Definitions (continued)
+# ----------------------------
+
+create_container() {
+  if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
+    warning_message "Container '${CONTAINER_NAME}' is already running."
+    return 0
+  fi
+  info_message "Creating Docker container '${CONTAINER_NAME}'..."
   docker run -d -it --rm --init --privileged \
-    --env=LOCAL_USER_ID="$(id -u)" \
-    --env=ROS_DOMAIN_ID=${ROS_DOMAIN_ID} \
-    --env=PX4_GZ_STANDALONE=1 \
-    --env=PX4_SYS_AUTOSTART=4001 \
-    --env=PX4_GZ_MODEL=x500 \
-    --env=DISPLAY=${DISPLAY} \
+    --env LOCAL_USER_ID="$(id -u)" \
+    --env ROS_DOMAIN_ID="${ROS_DOMAIN_ID}" \
+    --env PX4_GZ_STANDALONE=1 \
+    --env PX4_SYS_AUTOSTART=4001 \
+    --env PX4_GZ_MODEL=x500 \
+    --env DISPLAY="${DISPLAY:-:0}" \
     --net=host \
     --ipc=host \
     --pid=host \
-    -v $(pwd):/px4_scripts:rw \
+    -v "$(pwd)":/px4_scripts:rw \
     -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
     ${VOLUME_OPTION} \
-    --name=${CONTAINER_NAME} ${IMAGE_NAME} bash
+    --name="${CONTAINER_NAME}" "${IMAGE_NAME}" bash
 }
+
 exec_xrce() {
-  if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
-    docker exec -it ${CONTAINER_NAME} gosu user MicroXRCEAgent udp4 -p 8888
-    exit 0
+  if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
+    info_message "Starting MicroXRCEAgent in container '${CONTAINER_NAME}'..."
+    docker exec -it "${CONTAINER_NAME}" gosu user MicroXRCEAgent udp4 -p 8888
   else 
-    echo "Container not running. Starting container..."
+    warning_message "Container '${CONTAINER_NAME}' is not running. Creating container..."
     create_container
     exec_xrce
   fi
 }
 
 exec_bash() {
-  if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
-    docker exec -it ${CONTAINER_NAME} gosu user bash
-    exit 0
+  if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
+    info_message "Starting bash shell in container '${CONTAINER_NAME}'..."
+    docker exec -it "${CONTAINER_NAME}" gosu user bash
   else 
-    echo "Container not running. Start using --xrce."
-    exit 1
+    warning_message "Container '${CONTAINER_NAME}' is not running. Creating container..."
+    create_container
+    exec_bash
   fi
 }
 
 exec_gazebo_sim() {
   xhost +
-  if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
-    docker exec -it ${CONTAINER_NAME} gosu user python ${PX4_DIR}/Tools/simulation/gz/simulation-gazebo ${HEADLESS}
-    exit 0
+  if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
+    info_message "Starting Gazebo simulator in container '${CONTAINER_NAME}'..."
+    docker exec -it "${CONTAINER_NAME}" gosu user python "${PX4_DIR}/Tools/simulation/gz/simulation-gazebo" ${HEADLESS}
   else 
-    echo "Container not running. Start using --xrce."
-    exit 1
+    error_exit "Container '${CONTAINER_NAME}' is not running. Please create the container first."
   fi
 }
 
 exec_multiple_robots() {
-  if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
-    docker exec -it ${CONTAINER_NAME} gosu user bash /px4_scripts/robots_execs.sh
-    exit 0
+  if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
+    info_message "Launching multiple robots in container '${CONTAINER_NAME}'..."
+    docker exec -it "${CONTAINER_NAME}" gosu user bash /px4_scripts/robots_execs.sh
   else 
-    echo "Container not running. Start using --xrce."
-    exit 1
+    error_exit "Container '${CONTAINER_NAME}' is not running. Please create the container first."
   fi
 }
 
-exec_single_robot() {
-  if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
-    ROBOT_ID=$1
-    POSE="$2,$3,0,0,0,0"
-    docker exec -it ${CONTAINER_NAME} gosu user bash PX4_GZ_MODEL_POSE="$POSE" ${PX4_DIR}/build/px4_sitl_default/bin/px4 -i $ROBOT_ID
-    exit 0
-  else 
-    echo "Container not running. Start using --xrce."
-    exit 1
-  fi
-}
+# ----------------------------
+# Main Logic
+# ----------------------------
 
-if [[ ${CREATE} == true ]]; then
+if [[ "$CREATE" == true ]]; then
   create_container
   exit 0
 fi
 
-if [[ ${BASH} == true ]]; then
+if [[ "$BASH_MODE" == true ]]; then
   exec_bash
   exit 0
 fi
 
-if [[ ${XRCE} == true ]]; then
+if [[ "$XRCE" == true ]]; then
   exec_xrce
   exit 0
 fi
 
-if [[ ${SIM} == true ]]; then
+if [[ "$SIM" == true ]]; then
   exec_gazebo_sim
   exit 0
 fi
 
-if [[ ${EXEC_MULTIPLE_ROBOTS} == true ]]; then
+if [[ "$EXEC_MULTIPLE_ROBOTS" == true ]]; then
   exec_multiple_robots
   exit 0
 fi
+
