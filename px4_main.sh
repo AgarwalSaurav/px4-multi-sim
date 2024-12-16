@@ -228,7 +228,7 @@ exec_gazebo_sim() {
   xhost +
   if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
     info_message "Starting Gazebo simulator in container '${CONTAINER_NAME}'..."
-    docker exec -it "${CONTAINER_NAME}" gosu user python "${PX4_DIR}/Tools/simulation/gz/simulation-gazebo" ${HEADLESS}
+    docker exec -it "${CONTAINER_NAME}" gosu user python "${PX4_DIR}/Tools/simulation/gz/simulation-gazebo" ${HEADLESS} --world simple_baylands
   else 
     error_exit "Container '${CONTAINER_NAME}' is not running. Please create the container first."
   fi
