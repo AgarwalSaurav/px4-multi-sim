@@ -23,11 +23,12 @@ Options:
   -s, --sim                              Start Gazebo simulator.
       --headless                         Run in headless mode (valid only with -s|--sim).
   -r, --robots                           Launch multiple robots (see robots_execs.sh)
+  --delete                               Delete the container.
 
   -h, --help                             Show this help message and exit.
 
 Note:
-  - Only one of the following options can be specified: -x, -s, -r, -c, -b.
+  - Only one of the following options can be specified: -x, -s, -r, -c, -b, --delete.
 EOF
 }
 
@@ -68,7 +69,7 @@ fi
 
 # Define short and long options
 SHORT_OPTS="d:n:xcbshr"
-LONG_OPTS="directory:,name:,help,create,xrce,bash,sim,headless,robots"
+LONG_OPTS="directory:,name:,help,create,xrce,bash,sim,headless,robots,delete"
 
 # Parse options using getopt
 PARSED_PARAMS=$(getopt -o "$SHORT_OPTS" -l "$LONG_OPTS" -n "$(basename "$0")" -- "$@") || {
@@ -115,6 +116,11 @@ while true; do
       ((++EXCLUSIVE_OPTION_COUNT))
       shift
       ;;
+    --delete)
+      DELETE=true
+      ((++EXCLUSIVE_OPTION_COUNT))
+      shift
+      ;;
     -s|--sim)
       SIM=true
       ((++EXCLUSIVE_OPTION_COUNT))
@@ -145,9 +151,9 @@ done
 
 # Enforce that only one exclusive option is specified
 if [[ $EXCLUSIVE_OPTION_COUNT -gt 1 ]]; then
-  error_exit "Only one of the following options can be specified: -x, -s, -r, -c, -b."
+  error_exit "Only one of the following options can be specified: -x, -s, -r, -c, -b --delete."
 elif [[ $EXCLUSIVE_OPTION_COUNT -eq 0 ]]; then
-  error_exit "At least one of the following options must be specified: -x, -s, -r, -c, -b."
+  error_exit "At least one of the following options must be specified: -x, -s, -r, -c, -b --delete."
 fi
 
 IMAGE_NAME="agarwalsaurav/px4-dev-ros2-humble:latest"
@@ -268,3 +274,8 @@ if [[ "$EXEC_MULTIPLE_ROBOTS" == true ]]; then
   exit 0
 fi
 
+if [[ "$DELETE" == true ]]; then
+  if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
+    docker stop "${CONTAINER_NAME}"
+  fi
+fi
